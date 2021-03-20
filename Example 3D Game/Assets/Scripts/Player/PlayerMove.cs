@@ -30,8 +30,17 @@ public class PlayerMove : MonoBehaviour
 
     private Animator anim;
 
+    /// <summary>
+    /// ID = 1 : Sword
+    /// ID = 2 : Machete
+    /// ID = 3 : Axe
+    /// ID = 4 : ...
+    /// </summary>
+    private int idWeapon;
+
     private void Start()
     {
+        idWeapon = 0;
         anim = GameObject.FindGameObjectWithTag("Player").GetComponentInChildren<Animator>();
     }
 
@@ -102,15 +111,32 @@ public class PlayerMove : MonoBehaviour
     {
         if (!isAttacking)
         {
-            anim.SetTrigger("meleeAttack");
-            StartAttack();
+            if(idWeapon == 1)
+            {
+                anim.SetTrigger("swordAttack");
+                StartAttack();
+            }
+            else if(idWeapon == 2)
+            {
+                anim.SetTrigger("macheteAttack");
+                StartAttack();
+            }
+            else if(idWeapon == 3)
+            {
+                anim.SetTrigger("axeAttack");
+                StartAttack();
+            }
+            else if (idWeapon == 4)
+            {
+                anim.SetTrigger("axeAttack");
+                StartAttack();
+            }
         }
     }
 
     public void StartAttack()
     {
         isAttacking = true;
-        Invoke("FinishAttack", 1.2f);
     }
     public void FinishAttack()
     {
@@ -120,5 +146,10 @@ public class PlayerMove : MonoBehaviour
     public void PickUpAnimation()
     {
         anim.SetTrigger("pickUp");
+    }
+
+    public void CurrentWeaponID(int ID)
+    {
+        idWeapon = ID;
     }
 }

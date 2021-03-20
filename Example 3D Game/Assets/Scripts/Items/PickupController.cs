@@ -9,6 +9,13 @@ public class PickupController : MonoBehaviour
     public Transform fpsCam;
     public Rigidbody rb;
     public BoxCollider coll;
+    public int idWeapon;
+    /// <summary>
+    /// ID = 1 : Sword
+    /// ID = 2 : Machete
+    /// ID = 3 : Axe
+    /// ID = 4 : ...
+    /// </summary>
     public float pickUpRange = 6f;
     public float minRange = 1f;
     public float dropForwardForce;
@@ -90,10 +97,13 @@ public class PickupController : MonoBehaviour
         transform.localRotation = Quaternion.Euler(rot);
         transform.localScale = scale;
 
+        player.GetComponent<PlayerMove>().CurrentWeaponID(idWeapon);
     }
 
     private void Drop()
     {
+        player.GetComponent<PlayerMove>().CurrentWeaponID(0);
+
         equipped = false;
         slotFull = false;
 
@@ -116,6 +126,11 @@ public class PickupController : MonoBehaviour
     private void PickUpPermise()
     {
         canBePicked = true;
+    }
+
+    public int ReturnId()
+    {
+        return idWeapon;
     }
 
 
