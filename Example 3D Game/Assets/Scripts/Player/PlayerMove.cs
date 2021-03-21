@@ -26,17 +26,19 @@ public class PlayerMove : MonoBehaviour
 
     private bool isGrounded;
 
+    private bool isIdle; //To check when we need to trigger the idle
+
     private bool isAttacking;
 
     private Animator anim;
 
+    private int idWeapon;
     /// <summary>
     /// ID = 1 : Sword
     /// ID = 2 : Machete
     /// ID = 3 : Axe
-    /// ID = 4 : ...
+    /// ID = 4 : Sickle
     /// </summary>
-    private int idWeapon;
 
     private void Start()
     {
@@ -48,6 +50,7 @@ public class PlayerMove : MonoBehaviour
     {
         isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
+        // Gravity
         if(isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -56,29 +59,10 @@ public class PlayerMove : MonoBehaviour
         float horizontal = Input.GetAxis("Horizontal");
         float vertical = Input.GetAxis("Vertical");
 
-        if (Input.GetKey(KeyCode.LeftShift) && !isAttacking)
-        {
-            speed = speedSprint;
-            
-            anim.SetBool("runWithSword", false);
-            
-            anim.SetBool("isSprinting", true);
-        }
-        else if (!isAttacking)
-        {
-            speed = speedNormal;
-            anim.SetBool("isSprinting", false);
-            anim.SetBool("runWithSword", true);
-        }
-        else
-        {
-            speed = 0f;
-        }
-
         Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
-
         if (direction.magnitude >= 0.1f)
         {
+            // Rotation after camera (Go in the direction where the camera is looking)
             float targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + cam.eulerAngles.y;
             float angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
             transform.rotation = Quaternion.Euler(0f, angle, 0f);
@@ -86,25 +70,74 @@ public class PlayerMove : MonoBehaviour
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             controller.Move(moveDir.normalized * speed * Time.deltaTime);
             anim.SetBool("isIdle", false);
+            isIdle = false;
+            Running();
         }
-        else
+        else if(!isAttacking)
         {
-
+            // Stop other animations
             anim.SetBool("runWithSword", false);
-
+            anim.SetBool("isRunning", false);
             anim.SetBool("isSprinting", false);
+            // Trigger Idle Animation to stop PickUp Animation if we stay.
+            if(isIdle == false)
+            {
+                anim.SetTrigger("idleTrigger");
+                isIdle = true;
+            }
             anim.SetBool("isIdle", true);
         }
 
+        // Jump
         if(Input.GetButtonDown("Jump") && isGrounded && !isAttacking)
         {
-            anim.SetTrigger("jump");
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            Jump();
         }
 
+        // Gravity
         velocity.y += gravity * Time.deltaTime;
 
-        controller.Move(velocity * Time.deltaTime); // v = (1/2)*g * t^2.
+        controller.Move(velocity * Time.deltaTime);
+    }
+
+    private void Jump()
+    {
+        anim.SetTrigger("jump");
+        velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+    }
+
+    private void Running()
+    {
+        if (Input.GetKey(KeyCode.LeftShift) && !isAttacking)
+        {
+            speed = speedSprint;
+
+            anim.SetBool("runWithSword", false);
+            anim.SetBool("isRunning", false);
+
+            anim.SetBool("isSprinting", true);
+        }
+        else if (!isAttacking)
+        {
+            speed = speedNormal;
+            anim.SetBool("isSprinting", false);
+
+            if(idWeapon == 0)
+            {
+                anim.SetBool("runWithSword", false);
+                anim.SetBool("isRunning", true);
+            }
+            else
+            {
+                anim.SetBool("isRunning", false);
+                anim.SetBool("runWithSword", true);
+            }
+
+        }
+        else
+        {
+            speed = 0f;
+        }
     }
 
     public void MeeleAttack()
@@ -134,6 +167,7 @@ public class PlayerMove : MonoBehaviour
         }
     }
 
+    // 2 Functions which is used in attack animations 
     public void StartAttack()
     {
         isAttacking = true;
@@ -146,6 +180,12 @@ public class PlayerMove : MonoBehaviour
     public void PickUpAnimation()
     {
         anim.SetTrigger("pickUp");
+
+        //It needs to stop the PickUp animation if we are still in idle
+        if(isIdle == true)
+        {
+            isIdle = false;
+        }
     }
 
     public void CurrentWeaponID(int ID)

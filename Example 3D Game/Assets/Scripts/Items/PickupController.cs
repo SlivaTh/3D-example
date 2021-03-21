@@ -33,6 +33,8 @@ public class PickupController : MonoBehaviour
 
     private void Start()
     {
+        equipped = false;
+
         canBePicked = true;
 
         player = GameObject.FindGameObjectWithTag("Player").transform;
@@ -63,6 +65,7 @@ public class PickupController : MonoBehaviour
             }
         }
 
+        //Pick Up without press E
         if (!equipped && distanceToPlayer.magnitude <= minRange && !slotFull)
         {
             if (canBePicked)
@@ -70,8 +73,6 @@ public class PickupController : MonoBehaviour
                 PickUp();
             }
         }
-
-
 
         //Drop weapon if Q is pressed;
         if (equipped && Input.GetKeyDown(KeyCode.Q))
@@ -82,16 +83,16 @@ public class PickupController : MonoBehaviour
 
     private void PickUp()
     {
-        player.GetComponent<PlayerMove>().PickUpAnimation();
-
         equipped = true;
         slotFull = true;
 
-        //Make RB kinematic
+        player.GetComponent<PlayerMove>().PickUpAnimation();
+
+        // Make RB kinematic
         rb.isKinematic = true;
         coll.isTrigger = true;
 
-        //Make weapon a child of the equipPosition
+        // Make weapon a child of the equipPosition
         transform.SetParent(equipPosition);
         transform.localPosition = pos;
         transform.localRotation = Quaternion.Euler(rot);
@@ -102,10 +103,10 @@ public class PickupController : MonoBehaviour
 
     private void Drop()
     {
-        player.GetComponent<PlayerMove>().CurrentWeaponID(0);
-
         equipped = false;
         slotFull = false;
+
+        player.GetComponent<PlayerMove>().CurrentWeaponID(0);
 
         //Make RB kinematic
         rb.isKinematic = false;
