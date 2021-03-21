@@ -23,6 +23,7 @@ public class PickupController : MonoBehaviour
 
     public bool equipped;
     public static bool slotFull;
+    public static bool canPick;
 
     [Header("Transform")]
     public Vector3 pos;
@@ -36,6 +37,8 @@ public class PickupController : MonoBehaviour
         equipped = false;
 
         canBePicked = true;
+
+        canPick = true;
 
         player = GameObject.FindGameObjectWithTag("Player").transform;
         equipPosition = GameObject.FindGameObjectWithTag("WeaponSlot").transform;
@@ -59,7 +62,7 @@ public class PickupController : MonoBehaviour
         Vector3 distanceToPlayer = player.position - transform.position;
         if(!equipped && distanceToPlayer.magnitude <= pickUpRange && Input.GetKeyDown(KeyCode.E) && !slotFull)
         {
-            if (canBePicked)
+            if (canBePicked && canPick)
             {
                 PickUp();
             }
@@ -68,7 +71,7 @@ public class PickupController : MonoBehaviour
         //Pick Up without press E
         if (!equipped && distanceToPlayer.magnitude <= minRange && !slotFull)
         {
-            if (canBePicked)
+            if (canBePicked && canPick)
             {
                 PickUp();
             }
@@ -106,6 +109,10 @@ public class PickupController : MonoBehaviour
         equipped = false;
         slotFull = false;
 
+        //Fix Bug (cannot pick immediately machete after drop a sword)
+        canPick = false;
+        Invoke("CanPickStatic", 0.1f);
+
         player.GetComponent<PlayerMove>().CurrentWeaponID(0);
 
         //Make RB kinematic
@@ -127,6 +134,11 @@ public class PickupController : MonoBehaviour
     private void PickUpPermise()
     {
         canBePicked = true;
+    }
+
+    private void CanPickStatic()
+    {
+        canPick = true;
     }
 
     public int ReturnId()
